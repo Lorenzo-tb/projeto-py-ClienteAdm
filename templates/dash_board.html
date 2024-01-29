@@ -1,0 +1,249 @@
+{% extends "users.html" %}
+{% block header %}
+{{ super() }}
+{% endblock %}
+{% block content %}
+<div class="container mt-5" id="tudo">
+    <div class="row">
+        <div class="text-center">
+            <h1>Logins diários</h1>
+        </div>
+        <div id="chart" class="text-center">
+
+        </div>
+    </div>
+    <div class="row mt-5">
+        <div class="text-center">
+            <h1>Aniversariantes</h1>
+        </div>
+        <div id="aniversarios">
+        </div>
+    </div>
+    <div class="row">
+        <div class="text-center">
+            <h1>Quantidade de cadastros com telefone</h1>
+        </div>
+        <div class=" row d-flex justify-content-center">
+
+            <div class="col-4" id="chart-telefones" >
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let datas = JSON.parse('{{datas | tojson | safe}}');
+    let homens = JSON.parse('{{homens | tojson | safe}}');
+    let mulheres = JSON.parse('{{mulheres | tojson | safe}}');
+    let quan_sem_tel = parseInt("{{quan_sem_tel}}")
+    let quan_telefones = parseInt("{{quan_telefones}}")
+
+    console.log(datas)
+    var options = {
+        series: [{
+            name: 'Homens',
+            data: homens
+        }, {
+            name: 'Mulheres',
+            data: mulheres
+        }],
+        chart: {
+            type: 'bar',
+            height: 350,
+            stacked: true,
+            toolbar: {
+                show: true
+            },
+            zoom: {
+                enabled: true
+            }
+        },
+        responsive: [{
+            breakpoint: 480,
+            options: {
+                legend: {
+                    position: 'bottom',
+                    offsetX: -10,
+                    offsetY: 0
+                }
+            }
+        }],
+        plotOptions: {
+            bar: {
+                horizontal: false,
+                borderRadius: 10,
+                dataLabels: {
+                    total: {
+                        enabled: true,
+                        style: {
+                            fontSize: '13px',
+                            fontWeight: 900
+                        }
+                    }
+                }
+            },
+        },
+        xaxis: {
+            categories: datas,
+        },
+        legend: {
+            position: 'right',
+            offsetY: 40
+        },
+        fill: {
+            opacity: 1
+        }
+    };
+
+    var chart = new ApexCharts(document.querySelector("#chart"), options);
+    chart.render();
+
+    var options_telefones = {
+        series: [quan_telefones, quan_sem_tel],
+        chart: {
+            width: 380,
+            type: 'pie',
+        },
+        labels: ['Com telefone', 'Sem telefone'],
+        responsive: [{
+            breakpoint: 480,
+            options: {
+                chart: {
+                    width: 200
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }]
+    };
+
+    var chart_telefones = new ApexCharts(document.querySelector("#chart-telefones"), options_telefones);
+    chart_telefones.render();
+
+    $.ajax({
+        method: "GET",
+        url: "/aniversariantes",
+        dataType: "json",
+    }).done(
+        function (e) {
+            let usuarios = "";
+            e.forEach(user => {
+                console.log(user)
+                if (user.bloqueado) {
+                    usuarios +=
+                        `
+                                <tr>
+                                    <th scope="row">${user.id}</th>
+                                    <td>${user.nome}</td>
+                                    <td>${user.nascimento}</td>
+                                    <td>${user.cpf}</td>
+                                    <td>
+                                        <div class="col-6">
+                                            <a class="btn btn-secondary" href="/user_information/${user.id}">Mais Informações</a>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-3">
+                                            <button class="btn btn-warning" onclick="unblock_usuario('${user.id}')">Desbloquear</button>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-3">
+                                            <button class="btn btn-success" onclick="parabens('${user.id}')">Mandar parabéns</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                `
+                }
+                else {
+                    usuarios +=
+                        `
+                                <tr>
+                                    <td><input onclick="test_check('${user.id}')" id="${user.id}" type="checkbox"/></td>
+                                    <th scope="row">${user.id}</th>
+                                    <td>${user.nome}</td>
+                                    <td>${user.nascimento}</td>
+                                    <td>${user.cpf}</td>
+                                    <td>
+                                        <div class="col-6">
+                                            <a class="btn btn-secondary" href="/user_information/${user.id}">Mais Informações</a>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-3">
+                                            <button class="btn btn-success" onclick="parabens('${user.id}')">Mandar parabéns</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                `
+                }
+            })
+            $("#aniversarios").html(
+                `<div class='mb-5'>
+                        <table class='table table-hover' id="tabela">
+                            <thead>
+                                <tr>
+                                    <th scope="col"> </th>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">NOME</th>
+                                    <th scope="col">IDADE</th>
+                                    <th scope="col">CPF</th>
+                                    <th scope="col"> </th>
+                                    <th scope="col"> </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${usuarios}
+                            </tdoby>
+                        </table>
+                        <div class="row">
+                            <div class="col-3"></div>
+                            <div class="col-3">
+                                <button onclick="deletar_todos()" id="btn" class="btn btn-danger" >Deletar todos</button>
+                            </div>
+                        </div>
+                    </div>`
+            );
+            $("#btn").hide();
+            $("#tabela").DataTable();
+        }
+    )
+    function parabens(id) {
+        $.ajax({
+            method: "get",
+            url: `/feliz_aniversario/${id}`,
+            dataType: "json",
+            success: function (e) {
+                if (e.success) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Email enviado com sucesso!",
+                        showConfirmButton: false,
+                        timer: 1500
+                    })
+                }
+                else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Email não pode ser enviado!",
+                        showConfirmButton: false,
+                        timer: 1500
+                    })
+                }
+            },
+            error: function (e) {
+                console.log(e)
+            }
+        })
+    }
+    adm = "{{adm}}"
+    if(adm == "False"){
+        $("#tudo").html(
+            `
+            <h1 class="mt-5">Somente para ADMs!!</h1>
+            `
+        )
+    }
+</script>
+{% endblock %}

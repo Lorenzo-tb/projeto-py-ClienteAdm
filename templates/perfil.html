@@ -1,0 +1,475 @@
+{% extends "users.html" %}
+{% block header %}
+{{ super() }}
+{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-3"></div>
+        <div class="col-6" id="principal">
+            <div class="col-4" id="principal">
+
+
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    let fatores = "{{usuario.fatores}}";
+    let fatores_button = ``;
+    if (fatores == "True") {
+        fatores_button = `
+            <button onclick="email_fatores()" class="btn btn-link" style="width: 100%;">Desativar confirmação em dois fatores</button>
+        `
+    }
+    else {
+        fatores_button = `
+            <button onclick="email_fatores()" class="btn btn-link" style="width: 100%;">Ativar confirmação em dois fatores</button>
+        `
+    }
+    $("#principal").html(
+        `
+        <div class="container mt-4 mb-4 p-3 d-flex justify-content-center">
+            <div class="card" style="width: 100%;">
+                <div class="row mt-3">
+                    <div class="col-4"></div>
+                    <div class="col-4" id="principal">
+                        <img class="card-img-top" src="{{usuario.foto}}" alt="{{usuario.foto}}">
+                        <form id="profile_picture">
+                            <label for="foto_input" class="form-label">
+                                <i class="bi bi-cloud-download"></i>
+                            </label>
+                            <input type="file" name="foto" id="foto_input" class="form-control">
+                            <input type="hidden" name="id" value="{{usuario.id}}">
+                            <div id="carregando"></div>
+                            <progress id="progressBar" value="0" max="100" style="display:none"></progress>
+                        </form>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-8 text-end">
+                            <h1 class="card-title">{{usuario.nome}}</h1>
+                        </div>
+                        <div class="col-4">
+                            <p>{{adm}}</p>
+                        </div>
+                        
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-6 row">
+                            <div class="col-6 text-end">
+                                <h6>Nascimento: </h7>
+                            </div>
+                            <div class="col-6">
+                                <p>{{usuario.nascimento}}</p>
+                            </div>
+                        </div>
+                        <div class="col-6 row">
+                            <div class="col-6 text-end">
+                                <h4>CPF: </h4>
+                            </div>
+                            <div class="col-6">
+                                <p>{{usuario.cpf}}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-6 row">
+                            <div class="col-6 text-end">
+                                <h5>Gênero: </h5>
+                            </div>
+                            <div class="col-6">
+                                <p>{{usuario.genero}}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 row">
+                            <div class="col-5 text-end">
+                                <h6>Telefone: </h6>
+                            </div>
+                            <div class="col-7">
+                                <p>{{usuario.telefone}}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-5 text-end">
+                            <h4>Email: </h4>
+                        </div>
+                        <div class="col-7">
+                            <p>{{usuario.email}}</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4">
+                            <a href="/update_user/{{usuario.id}}" class="btn btn-secondary" style="width: 100%;">Editar</a>
+                        </div>
+                        <div class="col">
+                            ${fatores_button}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-4 mb-5 text-center">
+            <div class="col-4"></div>
+            <div class="col-4">
+                <a class="btn btn-warning" href="/">VOLTAR</a>
+            </div>
+        </div>
+        `
+    )
+    $("#foto_input").hide()
+    $("#foto_input").on("change", () => {
+        $("#profile_picture").submit()
+    })
+
+    function email_fatores() {
+        if (fatores == "True") {
+            Swal.fire({
+                title: "Certeza?",
+                text: "Certeza que quer desativar a verificaçaõ em dois fatores?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Sim, desativar!",
+                cancelButtonText: "Cancelar!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        method: "PUT",
+                        url: "/deactivate_fatores",
+                        success: function (e) {
+                            if (e.success) {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Tudo certo",
+                                    text: "Confirmação em dois fatores desativada!",
+                                });
+                            }
+                            else {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Problemas",
+                                    text: "Ocorreu um problema!",
+                                });
+                            }
+                        }
+                    })
+                }
+            });
+
+        }
+        else {
+            Swal.fire({
+                title: "De qual maneira?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "##3085d6",
+                confirmButtonText: "Email",
+                cancelButtonText: "Telegram",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        method: "GET",
+                        url: "/email_fatores",
+                        success: function (e) {
+                            if (e.success) {
+                                Swal.fire({
+                                    title: "Insira o codigo enviado para você: ",
+                                    input: "text",
+                                    inputAttributes: {
+                                        autocapitalize: "off"
+                                    },
+                                    showCancelButton: true,
+                                    confirmButtonText: "Confirmar",
+                                    denyButtonText: "Cancelar",
+                                    showLoaderOnConfirm: true,
+                                    preConfirm: async (codigo) => {
+                                        try {
+                                            console.log(codigo)
+                                            $.ajax({
+                                                method: "PUT",
+                                                url: '/email_fatores',
+                                                data: { 'codigo': codigo },
+                                                dataType: "json",
+                                            }).done(
+                                                function (e) {
+                                                    console.log(e)
+                                                    if (e.success) {
+                                                        Swal.fire({
+                                                            icon: "success",
+                                                            title: "Tudo certo",
+                                                            text: "Confirmação em dois fatores ativada!",
+                                                        });
+                                                    }
+                                                    else {
+                                                        Swal.fire({
+                                                            icon: "error",
+                                                            title: "Problemas",
+                                                            text: "Código de ativação incorreto!",
+                                                        });
+                                                    }
+                                                },
+                                            )
+                                        } catch (error) {
+                                            Swal.fire({
+                                                icon: "error",
+                                                title: "Problemas",
+                                                text: "Ocorreu um problema: " + error,
+                                            });
+                                        }
+                                    },
+                                    allowOutsideClick: () => !Swal.isLoading()
+                                });
+                            }
+                        }
+                    })
+                }
+                else {
+                    Swal.fire({
+                        title: "Siga o <u>passo a passo</u>",
+                        icon: "info",
+                        html: `
+                            <div class="text-start">
+                                1) Abra os links e clique star ou digite "/start".<br/>
+                                2) Primeiro link: <a href="https://t.me/AnimabookBot"/>Telegram Bot</a>.<br/>
+                                3) Segundo link: <a href="https://t.me/userinfobot"/>Telegram Id</a> e copie o id. <br/>
+                                4) Cole o id na no espaço após clicar em "Feito!".
+                            </div>
+                        `,
+                        showCancelButton: true,
+                        focusConfirm: false,
+                        confirmButtonText: `
+                            Feito!
+                        `,
+
+                        cancelButtonText: `
+                            Cancelar!
+                        `,
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({
+                                title: "Insira o id do telegram: ",
+                                input: "text",
+                                inputAttributes: {
+                                    autocapitalize: "off"
+                                },
+                                showCancelButton: true,
+                                confirmButtonText: "Confirmar",
+                                denyButtonText: "Cancelar",
+                                showLoaderOnConfirm: true,
+                                preConfirm: async (codigo) => {
+                                    try {
+                                        console.log(codigo)
+                                        $.ajax({
+                                            method: "POST",
+                                            url: '/telegram_fatores',
+                                            data: {
+                                                'telegram': codigo,
+                                                'id': "{{usuario.id}}"
+                                            },
+                                            dataType: "json",
+                                        }).done(
+                                            function (e) {
+                                                console.log(e)
+                                                if (e.success) {
+                                                    Swal.fire({
+                                                        title: "Insira o codigo enviado para você pelo Telegram: ",
+                                                        input: "text",
+                                                        inputAttributes: {
+                                                            autocapitalize: "off"
+                                                        },
+                                                        showCancelButton: true,
+                                                        confirmButtonText: "Confirmar",
+                                                        denyButtonText: "Cancelar",
+                                                        showLoaderOnConfirm: true,
+                                                        preConfirm: async (codigo) => {
+                                                            try {
+                                                                console.log(codigo)
+                                                                $.ajax({
+                                                                    method: "PUT",
+                                                                    url: '/telegram_fatores',
+                                                                    data: {
+                                                                        'codigo': codigo,
+                                                                        'id': "{{usuario.id}}"
+                                                                    },
+                                                                    dataType: "json",
+                                                                }).done(
+                                                                    function (e) {
+                                                                        console.log(e)
+                                                                        if (e.success) {
+                                                                            Swal.fire({
+                                                                                icon: "success",
+                                                                                title: "Tudo certo",
+                                                                                text: "Confirmação em dois fatores ativada!",
+                                                                            });
+                                                                        }
+                                                                        else {
+                                                                            Swal.fire({
+                                                                                icon: "error",
+                                                                                title: "Problemas",
+                                                                                text: "Código de ativação incorreto!",
+                                                                            });
+                                                                        }
+                                                                    },
+                                                                )
+                                                            } catch (error) {
+                                                                Swal.fire({
+                                                                    icon: "error",
+                                                                    title: "Problemas",
+                                                                    text: "Ocorreu um problema: " + error,
+                                                                });
+                                                            }
+                                                        },
+                                                        allowOutsideClick: () => !Swal.isLoading()
+                                                    });
+                                                }
+                                                else {
+                                                    Swal.fire({
+                                                        icon: "error",
+                                                        title: "Problemas",
+                                                        text: "Id incorreto!",
+                                                    });
+                                                }
+                                            },
+                                        )
+                                    } catch (error) {
+                                        Swal.fire({
+                                            icon: "error",
+                                            title: "Problemas",
+                                            text: "Ocorreu um problema: " + error,
+                                        });
+                                    }
+                                },
+                                allowOutsideClick: () => !Swal.isLoading()
+                            });
+                        }
+                    })
+                    // $.ajax({
+                    //     method: "GET",
+                    //     url: "/email_fatores",
+                    //     success: function (e) {
+                    //         if (e.success) {
+                    //             Swal.fire({
+                    //                 title: "Insira o codigo enviado para você: ",
+                    //                 input: "text",
+                    //                 inputAttributes: {
+                    //                     autocapitalize: "off"
+                    //                 },
+                    //                 showCancelButton: true,
+                    //                 confirmButtonText: "Confirmar",
+                    //                 cancelButtonText: "Cancelar",
+                    //                 showLoaderOnConfirm: true,
+                    //                 preConfirm: async (codigo) => {
+                    //                     try {
+                    //                         console.log(codigo)
+                    //                         $.ajax({
+                    //                             method: "PUT",
+                    //                             url: '/email_fatores',
+                    //                             data: { 'codigo': codigo },
+                    //                             dataType: "json",
+                    //                         }).done(
+                    //                             function (e) {
+                    //                                 console.log(e)
+                    //                                 if (e.success) {
+                    //                                     Swal.fire({
+                    //                                         icon: "success",
+                    //                                         title: "Tudo certo",
+                    //                                         text: "Confirmação em dois fatores ativada!",
+                    //                                     });
+                    //                                 }
+                    //                                 else {
+                    //                                     Swal.fire({
+                    //                                         icon: "error",
+                    //                                         title: "Problemas",
+                    //                                         text: "Código de ativação incorreto!",
+                    //                                     });
+                    //                                 }
+                    //                             },
+                    //                         )
+                    //                     } catch (error) {
+                    //                         Swal.fire({
+                    //                             icon: "error",
+                    //                             title: "Problemas",
+                    //                             text: "Ocorreu um problema: " + error,
+                    //                         });
+                    //                     }
+                    //                 },
+                    //                 allowOutsideClick: () => !Swal.isLoading()
+                    //             });
+                    //         }
+                    //     }
+                    // })
+                }
+            });
+
+        }
+
+    }
+
+    function atualizar_imagem(formdata) {
+        $.ajax({
+            method: "PUT",
+            url: "/update_image",
+            data: formdata,
+            processData: false,
+            contentType: false,
+            dataType: "json",
+            xhr: function () {
+                var xhr = new window.XMLHttpRequest();
+
+                xhr.upload.addEventListener("progress", function (ev) {
+                    let totalSize = ev.total;
+                    let loadedSize = ev.loaded;
+                    var percent = (ev.loaded / ev.total) * 100;
+                    document.getElementById("progressBar").style.display = "";
+                    document.getElementById("progressBar").value = Math.round(percent);
+                }, false);
+
+                return xhr;
+            },
+
+            error: function (e) {
+                console.log("erralo na linha 184");
+            },
+        }).done(
+            function (e) {
+
+                console.log(e)
+                if (e.success) {
+                    Swal.fire({
+                        position: "top-end",
+                        icon: "success",
+                        title: "Usuário atualizado",
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        window.location.reload();
+                    })
+                }
+                else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: "Não foi possivel atualiza-lo",
+                    });
+                }
+            },
+        )
+    }
+
+    $(document).ready(() => {
+        $("#profile_picture").on("submit", function (e) {
+            let formdata = new FormData($(this)[0])
+            e.preventDefault()
+            atualizar_imagem(formdata)
+        })
+    })
+
+</script>
+{% endblock %}

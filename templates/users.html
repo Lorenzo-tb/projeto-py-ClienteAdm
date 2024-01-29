@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>users</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.css" />
+    <link rel="stylesheet" href="/DataTables/datatables.css" />
+    <link rel="stylesheet" href="//cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" />
+    <script src="/DataTables/datatables.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"
+        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+    <script src="/static/js/jquery.mask.js"></script>
+    <script src="//cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+</head>
+
+<body>
+    {% block header %}
+    <nav class="navbar navbar-expand-lg bg-body-tertiary sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">INCRIVEL CADASTRO</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/dash_boards">Dashboards</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/perfil">Perfil</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/login">logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% endblock %}
+    {% block content %}
+    <div class="container text-center" id="principal">
+    </div>
+    <script>
+        adm = '{{adm}}'
+        aniversario = '{{aniversario}}'
+
+        console.log(adm + aniversario)
+
+        if (adm == 'True') {
+            console.log("teste aqui")
+            $.ajax({
+                method: "GET",
+                url: "/users",
+                dataType: "json",
+            }).done(
+                function (e) {
+                    //console.log(e);
+                    let usuarios = "";
+                    e.forEach(user => {
+                        console.log(user)
+                        if (user.bloqueado) {
+                            usuarios +=
+                                `
+                                <tr>
+                                    <td><input onclick="test_check('${user.id}')" id="${user.id}" type="checkbox"/></td>
+                                    <th scope="row">${user.id}</th>
+                                    <td>${user.nome}</td>
+                                    <td>${user.nascimento}</td>
+                                    <td>${user.cpf}</td>
+                                    <td>
+                                        <div class="col-6">
+                                            <a class="btn btn-secondary" href="/user_information/${user.id}">Mais Informações</a>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-3">
+                                            <button class="btn btn-warning" onclick="unblock_usuario('${user.id}')">Desbloquear</button>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-3">
+                                            <button class="btn btn-danger" onclick="delete_usuario('${user.id}')">Deletar</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                `
+                        }
+                        else {
+                            usuarios +=
+                                `
+                                <tr>
+                                    <td><input onclick="test_check('${user.id}')" id="${user.id}" type="checkbox"/></td>
+                                    <th scope="row">${user.id}</th>
+                                    <td>${user.nome}</td>
+                                    <td>${user.nascimento}</td>
+                                    <td>${user.cpf}</td>
+                                    <td>
+                                        <div class="col-6">
+                                            <a class="btn btn-secondary" href="/user_information/${user.id}">Mais Informações</a>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-3">
+                                            <button class="btn btn-warning" onclick="block_usuario('${user.id}')">Bloquear</button>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-3">
+                                            <button class="btn btn-danger" onclick="delete_usuario('${user.id}')">Deletar</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                `
+                        }
+
+                    })
+                    $("#principal").html(
+                        `<div class='mb-5'>
+                        <h1 class='mb-5'>SUPER INCRÍVEL CADASTRO DE PESSOAS</h1>
+                        <table class='table table-hover' id="tabela">
+                            <thead>
+                                <tr>
+                                    <th scope="col"> </th>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">NOME</th>
+                                    <th scope="col">IDADE</th>
+                                    <th scope="col">CPF</th>
+                                    <th scope="col"> </th>
+                                    <th scope="col"> </th>
+                                    <th scope="col"> </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${usuarios}
+                            </tdoby>
+                        </table>
+                        <div class="row">
+                            <div class="col-3"></div>
+                            <div class="col-3">
+                                <button onclick="deletar_todos()" id="btn" class="btn btn-danger" >Deletar todos</button>
+                            </div>
+
+                        </div>
+                    </div>`
+                    );
+                    $("#btn").hide();
+                    $("#tabela").DataTable();
+                }
+            )
+        }
+        else if (aniversario == 'True') {
+            $("#principal").html(
+                `
+                    <h1 class="mt-5">Bem Vindo!!!</h1>
+                    <h3>Feliz Aniversário</h3>
+                `
+            )
+        }
+        else {
+            $("#principal").html(
+                `
+                    <h1 class="mt-5">Bem Vindo!!!</h1>
+                `
+            )
+        }
+        
+        let selecionados = [];
+        function test_check(id) {
+            console.log(id);
+            let checkbox = document.getElementById(id).checked;
+            console.log(checkbox);
+            if (checkbox == true) {
+                selecionados.push(id);
+                console.log(selecionados);
+            }
+            else {
+                selecionados.pop(id);
+                console.log(selecionados);
+            }
+            if (selecionados.length > 0) {
+                $("#btn").show(250);
+            }
+            else {
+                $("#btn").hide(250);
+            }
+        }
+        function delete_usuario(id) {
+            Swal.fire({
+                title: "Tem certeza?",
+                text: "Não vai ser possível reverter!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonText: "Cancelar",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Sim, deletar!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        method: "delete",
+                        url: `/delete_user/${id}`,
+                        dataType: "json",
+                        success: function (e) {
+                            console.log(e)
+                            if (e.success) {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Usuário deletado com sucesso!",
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                }).then(() => {
+                                    window.location.reload();
+                                })
+                            }
+                            else {
+                                alert("não pode ser apagado")
+                            }
+                        },
+                        error: function (e) {
+                            console.log(e)
+                        }
+                    })
+                }
+            });
+
+        }
+
+        function deletar_todos() {
+            let json_selecionados = JSON.stringify(selecionados);
+            console.log(json_selecionados);
+            console.log(selecionados);
+            Swal.fire({
+                title: "Tem certeza?",
+                text: "Não vai ser possível reverter!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                cancelButtonText: "Cancelar",
+                confirmButtonText: "Sim, deletar!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        method: "delete",
+                        url: `/delete_more`,
+                        dataType: "json",
+                        data: {
+                            selecionados: json_selecionados
+                        },
+                        success: function (e) {
+                            console.log(e)
+                            if (e.success) {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Usuário deletado com sucesso!",
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                });
+                                setTimeout(() => {
+                                    window.location.reload()
+                                }, 1500)
+                            }
+                            else {
+                                alert("não pode ser apagado")
+                            }
+                        },
+                        error: function (e) {
+                            console.log(e)
+                        }
+                    })
+                }
+            });
+        }
+        function block_usuario(id) {
+            Swal.fire({
+                title: "Tem certeza?",
+                text: "O usuário nao poderá mais acessar o sistema!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonText: "Cancelar",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Sim, bloquear!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        method: "put",
+                        url: `/block_user/${id}`,
+                        dataType: "json",
+                        success: function (e) {
+                            console.log(e)
+                            if (e.success) {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Usuário bloqueado com sucesso!",
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                }).then(() => {
+                                    window.location.reload();
+                                })
+                            }
+                            else {
+                                alert("não pode ser bloqueado")
+                            }
+                        },
+                        error: function (e) {
+                            console.log(e)
+                        }
+                    })
+                }
+            });
+        }
+        function unblock_usuario(id) {
+            Swal.fire({
+                title: "Tem certeza?",
+                text: "O usuário poderá acessar o sistema novamente!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonText: "Cancelar",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Sim, desbloquear!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        method: "put",
+                        url: `/unblock_user/${id}`,
+                        dataType: "json",
+                        success: function (e) {
+                            console.log(e)
+                            if (e.success) {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Usuário desbloqueado com sucesso!",
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                }).then(() => {
+                                    window.location.reload();
+                                })
+                            }
+                            else {
+                                alert("não pode ser apagado")
+                            }
+                        },
+                        error: function (e) {
+                            console.log(e)
+                        }
+                    })
+                }
+            });
+        }
+    </script>
+    {% endblock %}
+</body>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</html>

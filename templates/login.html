@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+    integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+    integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+    crossorigin="anonymous"></script>
+  <script src="/static/js/jquery.mask.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body style="height: 100vh;">
+
+</body>
+<script>
+  function content() {
+    $("body").html(
+      `
+      <section class="h-100 gradient-form" style="background-color: #eee;">
+        <div class="container py-5 h-100">
+          <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-xl-10">
+              <div class="card shadow rounded-3 text-black">
+                <div class="row g-0">
+                  <div class="col-lg-6">
+                    <div class="card-body p-md-5 mx-md-4">
+                      <div class="text-center mb-5">
+                        <img class="shadow" id="image" src="https://i.pinimg.com/564x/1f/71/51/1f71518985ba229cf1331da306beeca5.jpg" style="width: 200px;" alt="logo" />
+                      </div>
+                      <form id="form-login" method="POST">
+                        <p>Insira seu email</p>
+                        <div class="form-outline mb-4">
+                          <input type="email" id="email" class="form-control" name="email"/>
+                          <label class="form-label" for="form2Example11">EMAIL</label>
+                        </div>
+                        <p>Insira sua senha</p>
+                        <div class="form-outline mb-4">
+                          <input type="password"class="form-control" name="senha"/>
+                          <label class="form-label">SENHA</label>
+                        </div>
+                        <div class="text-center pt-1 mb-5 pb-1">
+                          <button class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3" type="submit">Log in</button>
+                        </div>
+                        <div class="text-center pt-1 mb-5 pb-1">
+                          <button type="button" onclick="forgot_password()" class="btn btn-link">Esqueceu sua senha?</button>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-center pb-4">
+                          <p class="mb-0 me-2">Não pussui conta?</p>
+                          <a href="/register" type="button" class="btn btn-outline-danger">Cadastrar</a>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                  <div class="col-lg-6 d-flex align-items-center gradient-custom-2">
+                    <div class="text-white px-3 py-4 p-md-5 mx-md-4">
+                      <h4 class="mb-4 text-dark">We are more than just a company</h4>
+                      <p class="small mb-0 text-dark">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+                        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+                        exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>`
+    );
+  }
+  content();
+
+  function do_login(formdata) {
+    $.ajax({
+      method: "POST",
+      url: '/do_login',
+      data: formdata,
+      processData: false,
+      contentType: false,
+      dataType: "json",
+    }).done(
+      function (e) {
+        console.log(e)
+        if (e.success) {
+          window.location.href = "/";
+        }
+        else if (e.blocked) {
+          Swal.fire({
+            icon: "error",
+            title: "Problemas ao entrar",
+            text: "Sua conta está bloqueada",
+          });
+        }
+        else if (e.fatores) {
+          Swal.fire({
+            title: "De qual maneira eh sua confirmação de dois fatores?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "##3085d6",
+            confirmButtonText: "Email",
+            cancelButtonText: "Telegram",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              $.ajax({
+                method: "GET",
+                url: "/email_fatores",
+                success: function (e) {
+                  if (e.success) {
+                    Swal.fire({
+                      title: "Insira o codigo enviado para você: ",
+                      input: "text",
+                      inputAttributes: {
+                        autocapitalize: "off"
+                      },
+                      showCancelButton: true,
+                      confirmButtonText: "Confirmar",
+                      cancelButtonText: "Cancelar",
+                      showLoaderOnConfirm: true,
+                      preConfirm: async (codigo) => {
+                        try {
+                          console.log(codigo)
+                          $.ajax({
+                            method: "PUT",
+                            url: '/login_fatores',
+                            data: { 'codigo': codigo },
+                            dataType: "json",
+                          }).done(
+                            function (e) {
+                              console.log(e)
+                              if (e.success) {
+                                window.location.href = "/";
+                              }
+                              else {
+                                Swal.fire({
+                                  icon: "error",
+                                  title: "Problemas",
+                                  text: "Código de ativação incorreto!",
+                                });
+                              }
+                            },
+                          )
+                        } catch (error) {
+                          Swal.fire({
+                            icon: "error",
+                            title: "Problemas",
+                            text: "Ocorreu um problema: " + error,
+                          });
+                        }
+                      },
+                      allowOutsideClick: () => !Swal.isLoading()
+                    });
+                  }
+                }
+              })
+            }
+            else {
+              $.ajax({
+                method: "GET",
+                url: "/login_telegram",
+                success: function (e) {
+                  if (e.success) {
+                    Swal.fire({
+                      title: "Insira o codigo enviado para você: ",
+                      input: "text",
+                      inputAttributes: {
+                        autocapitalize: "off"
+                      },
+                      showCancelButton: true,
+                      confirmButtonText: "Confirmar",
+                      cancelButtonText: "Cancelar",
+                      showLoaderOnConfirm: true,
+                      preConfirm: async (codigo) => {
+                        try {
+                          console.log(codigo)
+                          $.ajax({
+                            method: "PUT",
+                            url: '/login_fatores',
+                            data: { 'codigo': codigo },
+                            dataType: "json",
+                          }).done(
+                            function (e) {
+                              console.log(e)
+                              if (e.success) {
+                                window.location.href = "/";
+                              }
+                              else {
+                                Swal.fire({
+                                  icon: "error",
+                                  title: "Problemas",
+                                  text: "Código de ativação incorreto!",
+                                });
+                              }
+                            },
+                          )
+                        } catch (error) {
+                          Swal.fire({
+                            icon: "error",
+                            title: "Problemas",
+                            text: "Ocorreu um problema: " + error,
+                          });
+                        }
+                      },
+                      allowOutsideClick: () => !Swal.isLoading()
+                    });
+                  }
+                }
+              })
+            }
+          })
+
+        }
+        else {
+          Swal.fire({
+            icon: "error",
+            title: "Problemas ao entrar",
+            text: "Email ou senha podem estar incorretos",
+          });
+        }
+      },
+    )
+  }
+
+  $(document).ready(() => {
+    $("#form-login").on("submit", function (e) {
+      let formdata = new FormData($(this)[0])
+      e.preventDefault()
+      do_login(formdata)
+    })
+  })
+
+  function forgot_password() {
+    let email = $("#email").val();
+    console.log(email)
+    if (email == "") {
+      Swal.fire({
+        title: "Insira o email da conta para troca de senha",
+        input: "text",
+        inputAttributes: {
+          autocapitalize: "off"
+        },
+        showCancelButton: true,
+        confirmButtonText: "Confirmar",
+        cancelButtonText: "Cancelar",
+        showLoaderOnConfirm: true,
+        preConfirm: async (email) => {
+          try {
+            console.log(email)
+            $.ajax({
+              method: "GET",
+              url: '/forgot_password',
+              data: { 'email': email },
+
+              dataType: "json",
+            }).done(
+              function (e) {
+                console.log(e)
+                if (e.success) {
+                  Swal.fire({
+                    icon: "success",
+                    title: "Email enviado",
+                    text: "Foi enviado um email para troca de email!",
+                  });
+                }
+                else {
+                  Swal.fire({
+                    icon: "error",
+                    title: "Problemas",
+                    text: "Ocorreu um problema ao enviar o email de troca de senha!",
+                  });
+                }
+              },
+            )
+
+          } catch (error) {
+            Swal.fire({
+              icon: "error",
+              title: "Problemas",
+              text: "Ocorreu um problema: " + error,
+            });
+          }
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+      });
+    }
+    else {
+      $.ajax({
+        method: "GET",
+        url: '/forgot_password',
+        data: { 'email': email },
+        dataType: "json",
+      }).done(
+        function (e) {
+          console.log(e)
+          if (e.success) {
+            Swal.fire({
+              icon: "success",
+              title: "Email enviado",
+              text: "Foi enviado um email para troca de email!",
+            });
+          }
+          else {
+            Swal.fire({
+              icon: "error",
+              title: "Problemas",
+              text: "Ocorreu um problema ao enviar o email de troca de senha direto!",
+            });
+          }
+        },
+      )
+    }
+  }
+</script>
+
+</html>

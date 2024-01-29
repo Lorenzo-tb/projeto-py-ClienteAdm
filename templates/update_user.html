@@ -1,0 +1,113 @@
+{% extends "users.html" %}
+{% block header %}
+{{ super() }}
+{% endblock %}
+{% block content %}
+<div class="container text-center" id="principal">
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function content(){
+        $("#principal").html(
+            `
+            <div class="row mt-5">
+                <h1>Atualizar pessoa</h1>
+                <div class="col-md-6 offset-md-3">
+                    <form id="form-editar-usuario" class="shadow p-4">
+                        <div class="mb-3">
+                            <label>Nome</label>
+                            
+                            <input type="text" name="nome" class="form-control" value="{{nome}}">
+                        </div>
+                        <div class="mb-3">
+                            <label>Nascimento</label>
+                            <input type="text" name="nascimento" class="form-control" id="nascimento" value="{{nascimento}}">
+                        </div>
+                        <div class="mb-3">
+                            <label>CPF</label>
+                            <input type="text" name="cpf" id="cpf" class="form-control" value="{{cpf}}">
+                        </div>
+                        <div class="mb-3">
+                            <label>Gênero</label>
+                            <select class="form-select" id="inputGroupSelect01" name="genero">
+                                <option value="masculino">Masculino</option>
+                                <option value="feminino">Feminino</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Telefone</label>
+                            <input type="text" name="telefone" id="telefone"class="form-control" value="{{telefone}}">
+                        </div>
+                        <div class="mb-3">
+                            <label>Foto</label>
+                            <input type="file" class="form-control" name="foto" placeholder="Foto">
+                        </div>
+                        <div class="mb-3">
+                            <label>Permissão</label>
+                            <select class="form-select" id="inputGroupSelect01" name="adm">
+                                <option value="cliente">Cliente</option>
+                                <option value="adm">ADM</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <button type="submit" class="btn btn-primary">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="row mt-4 mb-5">
+                <div class="col-4"></div>
+                <div class="col-4">
+                    <a class="btn btn-warning" href="/user_information/{{id}}">VOLTAR</a>
+                </div>
+            </div>`
+        )
+        $("#cpf").mask('000.000.000-00')
+        $("#telefone").mask('(00) 00000-0000')
+        $("#nascimento").mask("0000-00-00")
+    }
+
+    function atualizar_usuario(formdata) {
+        $.ajax({
+            method: "PUT",
+            url: window.location.pathname,
+            data: formdata,
+            processData: false,
+            contentType: false,
+            dataType: "json",
+        }).done(
+            function (e) {
+                console.log(e)
+                if (e.success) {
+                    Swal.fire({
+                        position: "top-end",
+                        icon: "success",
+                        title: "Usuário atualizado",
+                        showConfirmButton: false,
+                        timer: 1500
+                    })
+                }
+                else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "CPF Inválido",
+                        text: "Coloque um cpf válido",
+                    });
+                }
+            },
+        )
+    }
+    $(document).ready(() => {
+        $("#form-editar-usuario").on("submit", function (e) {
+            let formdata = new FormData($(this)[0])
+            e.preventDefault()
+            atualizar_usuario(formdata)
+        })
+    })
+    content();
+    $("#fechar").click(()=>{
+        $("#message-block").hide(500)
+    })
+</script>
+{% endblock %}
