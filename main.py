@@ -106,14 +106,13 @@ class EmailSend:
         except Exception as e:
             print("Erro: ", e)
 
-    def send_fatores(self):
+    def send_fatores(self, senha_teste):
         try:
             msg = MIMEMultipart()
             msg['From'] = self.email_sender
             msg['To'] = self.email_receiver
             msg['Subject'] = 'TESTE DE DOIS FATORES'
-            senha_teste = random.randint(10000,99999)
-            session['fatores'] = senha_teste
+            
             body = 'Aqui esta o codigo para confirmar os dois fatores: ' + str(senha_teste)
 
             msg.attach(MIMEText(body, 'plain'))
@@ -325,7 +324,6 @@ def login():
 def do_login():
     email = request.form.get('email')
     senha = hashlib.sha256(request.form['senha'].encode()).hexdigest()
-
     query = db_session.query(ClienteAdm).filter_by(email=email).first()
 
     try:
@@ -337,11 +335,7 @@ def do_login():
                     "fatores": False
                 }))
             else:
-                if(query.fatores):
-                    before_hash = "{}{}{}".format(email, senha, datetime.now())
-                    session['id'] = query.id
-                    session['key'] = hashlib.sha256(before_hash.encode()).hexdigest()
-                    session['email'] = email
+                if(query.fatores_email or query.telegram != ""):
                     return make_response(jsonify({
                         "success": False,
                         "blocked": False,
@@ -367,23 +361,108 @@ def do_login():
             "success": False,
         }))
     
-@app.put("/login_fatores")
+@app.route("/login_fatores", methods = ["PUT", "GET"])
 def login_fatores():
-    tentativa = int(request.form['codigo'])
-    print(tentativa)
-    print(session['fatores'])
-    if int(tentativa) == int(session['fatores']):
-        usuario = db_session.query(ClienteAdm).filter_by(id=session['id']).first()
-        usuario.data_atualizacao = datetime.now()
-        db_session.commit()
-
-        return make_response(jsonify({
-            "success": True,
-        }))
+    if request.method == "PUT":
+        tentativa = int(request.form['codigo'])
+        email = request.form['email']
+        senha = request.form['senha']
+        senha = hashlib.sha256(request.form['senha'].encode()).hexdigest()
+        print(tentativa)
+        print(session['fatores'])
+        if int(tentativa) == int(session['fatores']):
+            usuario = db_session.query(ClienteAdm).filter_by(email=email).first()
+            usuario.data_atualizacao = datetime.now()
+            db_session.commit()
+            before_hash = "{}{}{}".format(email, senha, datetime.now())
+            session['id'] = usuario.id
+            session['key'] = hashlib.sha256(before_hash.encode()).hexdigest()
+            session['email'] = email
+            return make_response(jsonify({
+                "success": True,
+            }))
+        else:
+            return make_response(jsonify({
+                "success": False,
+            }))
     else:
-        return make_response(jsonify({
-            "success": False,
-        }))
+        email = request.args['email']
+        usuario = db_session.query(ClienteAdm).filter_by(email=email).first()
+        print(usuario)
+        if usuario.fatores_email and usuario.telegram != "":
+            try:
+                smtp_port = 587
+                smtp_server = "email-ssl.com.br"
+                email_sender = "informativo@selecao.vitoriasupervarejo.com.br"
+                password = '6A%X&#yNrv262B%4QVYxpR8*'
+                email_receiver = email
+                print(email_receiver)
+                new_email = EmailSend(smtp_port, smtp_server, email_sender, email_receiver, password)
+                senha_teste = random.randint(10000,99999)
+                session['fatores'] = senha_teste
+                new_email.send_fatores(senha_teste)
+
+                chat = usuario.telegram
+                token_bot = "5116553674:AAHBHlgK6BKPKReG2TUPqBwQG-HE7ic0uYo"
+                message = f"Código de confirmação: {senha_teste}"
+                message = urllib.parse.quote(message)
+                url = 'https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&parse_mode=HTML&text={2}'.format(token_bot, chat, message)
+                r = requests.get(url)
+                
+                return make_response(jsonify({
+                    "success": True,
+                }))
+            except Exception as e:
+                print(e)
+                return make_response(jsonify({
+                    "success": False,
+                }))
+        elif usuario.fatores_email and usuario.telegram == "":
+            try:
+                smtp_port = 587
+                smtp_server = "email-ssl.com.br"
+                email_sender = "informativo@selecao.vitoriasupervarejo.com.br"
+                password = '6A%X&#yNrv262B%4QVYxpR8*'
+                email_receiver = email
+                print(email_receiver)
+                new_email = EmailSend(smtp_port, smtp_server, email_sender, email_receiver, password)
+                senha_teste = random.randint(10000,99999)
+                session['fatores'] = senha_teste
+                new_email.send_fatores(senha_teste)
+                return make_response(jsonify({
+                    "success": True,
+                }))
+            except Exception as e:
+                print(e)
+                return make_response(jsonify({
+                    "success": False,
+                }))
+            
+        elif not usuario.fatores_email and usuario.telegram != "":
+            try:
+                chat = usuario.telegram
+                token_bot = "5116553674:AAHBHlgK6BKPKReG2TUPqBwQG-HE7ic0uYo"
+                senha_teste = random.randint(10000,99999)
+                session['fatores'] = senha_teste
+                message = f"Código de confirmação: {senha_teste}"
+                message = urllib.parse.quote(message)
+                url = 'https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&parse_mode=HTML&text={2}'.format(token_bot, chat, message)
+                r = requests.get(url)
+                print(r)
+                
+                return make_response(jsonify({
+                    "success": True,
+                }))
+            except Exception as e:
+                print(e)
+                return make_response(jsonify({
+                    "success": False,
+                }))
+        else:
+            return make_response(jsonify({
+                "success": False,
+            }))
+
 
 
 @app.route("/register", methods=['POST', 'GET'])
@@ -418,7 +497,9 @@ def register():
                     password = '6A%X&#yNrv262B%4QVYxpR8*'
                     email_receiver = email
                     new_email = EmailSend(smtp_port, smtp_server, email_sender, email_receiver, password)
-                    new_email.send_fatores()
+                    senha_teste = random.randint(10000,99999)
+                    session['fatores'] = senha_teste
+                    new_email.send_fatores(senha_teste)
 
                     return make_response(jsonify({
                         "success": True,
@@ -474,7 +555,8 @@ def perfil():
 def deactivate_fatores():
     try:
         usuario = db_session.query(ClienteAdm).filter_by(id=session['id']).first()
-        usuario.fatores = False
+        usuario.fatores_email = False
+        usuario.telegram = ""
         db_session.commit()
         return make_response(jsonify({
             "success": True,
@@ -494,7 +576,7 @@ def email_fatores():
         print(session['fatores'])
         if int(tentativa) == int(session['fatores']):
             usuario = db_session.query(ClienteAdm).filter_by(id=session['id']).first()
-            usuario.fatores = True
+            usuario.fatores_email = True
             db_session.commit()
             return make_response(jsonify({
                 "success": True,
@@ -513,7 +595,9 @@ def email_fatores():
             print(email_receiver)
             new_email = EmailSend(smtp_port, smtp_server, email_sender, email_receiver, password)
             try:
-                new_email.send_fatores()
+                senha_teste = random.randint(10000,99999)
+                session['fatores'] = senha_teste
+                new_email.send_fatores(senha_teste)
             except:
                 return make_response(jsonify({
                     "success": False,
@@ -538,7 +622,6 @@ def telegram_fatores():
             if int(codigo) == int(session['fatores']):
                 try:
                     query = db_session.query(ClienteAdm).filter_by(id=id).first()
-                    query.fatores = True
                     db_session.commit()
                     return make_response(jsonify({
                         "success": True,

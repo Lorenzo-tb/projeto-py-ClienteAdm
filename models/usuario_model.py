@@ -19,7 +19,7 @@ class ClienteAdm(Base):
     foto = Column(String(1000))
     adm = Column(Boolean, default=False)
     bloqueado = Column(Boolean, default=False)
-    fatores = Column(Boolean, default=False)
+    fatores_email = Column(Boolean, default=False)
     telegram = Column(String(100))
     data_criacao = Column(TIMESTAMP)
     data_atualizacao = Column(TIMESTAMP)
@@ -37,7 +37,7 @@ class ClienteAdm(Base):
             'foto': self.foto,
             'adm': self.adm,
             'bloqueado': self.bloqueado,
-            "fatores": self.fatores,
+            "fatores": self.fatores_email,
             "telegram": self.telegram,
             "data_criacao": self.formatar_data(self.data_criacao),
             "data_atualizacao": self.formatar_data(self.data_atualizacao),

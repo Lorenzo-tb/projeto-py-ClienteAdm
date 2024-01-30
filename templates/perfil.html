@@ -103,11 +103,28 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-4">
+                        <div class="col-6 mt-4">
                             <a href="/update_user/{{usuario.id}}" class="btn btn-secondary" style="width: 100%;">Editar</a>
                         </div>
-                        <div class="col">
-                            ${fatores_button}
+                        <div class="col-6 row">
+                            <div class="row text-center">
+                                <p>Verivicação em dois fatores</p>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 text-end">
+                                    <button type="button" onclick="email_fatores()" class="btn btn-outline-primary">
+                                        <i class="bi bi-envelope-at"></i>
+                                    </button>
+                                </div>
+                                <div class="col-6 text-start">
+                                    <button type="button" onclick="telegram_fatores()" class="btn btn-outline-primary">
+                                        <i class="bi bi-telegram"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row text-center">
+                            <button type="button" onclick="deactivate_fatores()" class="btn btn-link">Desativar validações</button>
                         </div>
                     </div>
                 </div>
@@ -126,292 +143,241 @@
         $("#profile_picture").submit()
     })
 
-    function email_fatores() {
-        if (fatores == "True") {
-            Swal.fire({
-                title: "Certeza?",
-                text: "Certeza que quer desativar a verificaçaõ em dois fatores?",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Sim, desativar!",
-                cancelButtonText: "Cancelar!"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        method: "PUT",
-                        url: "/deactivate_fatores",
-                        success: function (e) {
-                            if (e.success) {
-                                Swal.fire({
-                                    icon: "success",
-                                    title: "Tudo certo",
-                                    text: "Confirmação em dois fatores desativada!",
-                                });
-                            }
-                            else {
-                                Swal.fire({
-                                    icon: "error",
-                                    title: "Problemas",
-                                    text: "Ocorreu um problema!",
-                                });
-                            }
-                        }
-                    })
-                }
-            });
+    function deac_fatores() {
 
-        }
-        else {
-            Swal.fire({
-                title: "De qual maneira?",
-                icon: "question",
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "##3085d6",
-                confirmButtonText: "Email",
-                cancelButtonText: "Telegram",
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        method: "GET",
-                        url: "/email_fatores",
-                        success: function (e) {
-                            if (e.success) {
-                                Swal.fire({
-                                    title: "Insira o codigo enviado para você: ",
-                                    input: "text",
-                                    inputAttributes: {
-                                        autocapitalize: "off"
-                                    },
-                                    showCancelButton: true,
-                                    confirmButtonText: "Confirmar",
-                                    denyButtonText: "Cancelar",
-                                    showLoaderOnConfirm: true,
-                                    preConfirm: async (codigo) => {
-                                        try {
-                                            console.log(codigo)
-                                            $.ajax({
-                                                method: "PUT",
-                                                url: '/email_fatores',
-                                                data: { 'codigo': codigo },
-                                                dataType: "json",
-                                            }).done(
-                                                function (e) {
-                                                    console.log(e)
-                                                    if (e.success) {
-                                                        Swal.fire({
-                                                            icon: "success",
-                                                            title: "Tudo certo",
-                                                            text: "Confirmação em dois fatores ativada!",
-                                                        });
-                                                    }
-                                                    else {
-                                                        Swal.fire({
-                                                            icon: "error",
-                                                            title: "Problemas",
-                                                            text: "Código de ativação incorreto!",
-                                                        });
-                                                    }
-                                                },
-                                            )
-                                        } catch (error) {
-                                            Swal.fire({
-                                                icon: "error",
-                                                title: "Problemas",
-                                                text: "Ocorreu um problema: " + error,
-                                            });
-                                        }
-                                    },
-                                    allowOutsideClick: () => !Swal.isLoading()
-                                });
-                            }
-                        }
-                    })
-                }
-                else {
-                    Swal.fire({
-                        title: "Siga o <u>passo a passo</u>",
-                        icon: "info",
-                        html: `
-                            <div class="text-start">
-                                1) Abra os links e clique star ou digite "/start".<br/>
-                                2) Primeiro link: <a href="https://t.me/AnimabookBot"/>Telegram Bot</a>.<br/>
-                                3) Segundo link: <a href="https://t.me/userinfobot"/>Telegram Id</a> e copie o id. <br/>
-                                4) Cole o id na no espaço após clicar em "Feito!".
-                            </div>
-                        `,
-                        showCancelButton: true,
-                        focusConfirm: false,
-                        confirmButtonText: `
-                            Feito!
-                        `,
-
-                        cancelButtonText: `
-                            Cancelar!
-                        `,
-                    }).then((result) => {
-                        if (result.isConfirmed) {
+        Swal.fire({
+            title: "Certeza?",
+            text: "Certeza que quer desativar a verificaçaõ em dois fatores?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sim, desativar!",
+            cancelButtonText: "Cancelar!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    method: "PUT",
+                    url: "/deactivate_fatores",
+                    success: function (e) {
+                        if (e.success) {
                             Swal.fire({
-                                title: "Insira o id do telegram: ",
-                                input: "text",
-                                inputAttributes: {
-                                    autocapitalize: "off"
-                                },
-                                showCancelButton: true,
-                                confirmButtonText: "Confirmar",
-                                denyButtonText: "Cancelar",
-                                showLoaderOnConfirm: true,
-                                preConfirm: async (codigo) => {
-                                    try {
-                                        console.log(codigo)
-                                        $.ajax({
-                                            method: "POST",
-                                            url: '/telegram_fatores',
-                                            data: {
-                                                'telegram': codigo,
-                                                'id': "{{usuario.id}}"
-                                            },
-                                            dataType: "json",
-                                        }).done(
-                                            function (e) {
-                                                console.log(e)
-                                                if (e.success) {
-                                                    Swal.fire({
-                                                        title: "Insira o codigo enviado para você pelo Telegram: ",
-                                                        input: "text",
-                                                        inputAttributes: {
-                                                            autocapitalize: "off"
-                                                        },
-                                                        showCancelButton: true,
-                                                        confirmButtonText: "Confirmar",
-                                                        denyButtonText: "Cancelar",
-                                                        showLoaderOnConfirm: true,
-                                                        preConfirm: async (codigo) => {
-                                                            try {
-                                                                console.log(codigo)
-                                                                $.ajax({
-                                                                    method: "PUT",
-                                                                    url: '/telegram_fatores',
-                                                                    data: {
-                                                                        'codigo': codigo,
-                                                                        'id': "{{usuario.id}}"
-                                                                    },
-                                                                    dataType: "json",
-                                                                }).done(
-                                                                    function (e) {
-                                                                        console.log(e)
-                                                                        if (e.success) {
-                                                                            Swal.fire({
-                                                                                icon: "success",
-                                                                                title: "Tudo certo",
-                                                                                text: "Confirmação em dois fatores ativada!",
-                                                                            });
-                                                                        }
-                                                                        else {
-                                                                            Swal.fire({
-                                                                                icon: "error",
-                                                                                title: "Problemas",
-                                                                                text: "Código de ativação incorreto!",
-                                                                            });
-                                                                        }
-                                                                    },
-                                                                )
-                                                            } catch (error) {
-                                                                Swal.fire({
-                                                                    icon: "error",
-                                                                    title: "Problemas",
-                                                                    text: "Ocorreu um problema: " + error,
-                                                                });
-                                                            }
-                                                        },
-                                                        allowOutsideClick: () => !Swal.isLoading()
-                                                    });
-                                                }
-                                                else {
-                                                    Swal.fire({
-                                                        icon: "error",
-                                                        title: "Problemas",
-                                                        text: "Id incorreto!",
-                                                    });
-                                                }
-                                            },
-                                        )
-                                    } catch (error) {
-                                        Swal.fire({
-                                            icon: "error",
-                                            title: "Problemas",
-                                            text: "Ocorreu um problema: " + error,
-                                        });
-                                    }
-                                },
-                                allowOutsideClick: () => !Swal.isLoading()
+                                icon: "success",
+                                title: "Tudo certo",
+                                text: "Confirmação em dois fatores desativada!",
                             });
                         }
-                    })
-                    // $.ajax({
-                    //     method: "GET",
-                    //     url: "/email_fatores",
-                    //     success: function (e) {
-                    //         if (e.success) {
-                    //             Swal.fire({
-                    //                 title: "Insira o codigo enviado para você: ",
-                    //                 input: "text",
-                    //                 inputAttributes: {
-                    //                     autocapitalize: "off"
-                    //                 },
-                    //                 showCancelButton: true,
-                    //                 confirmButtonText: "Confirmar",
-                    //                 cancelButtonText: "Cancelar",
-                    //                 showLoaderOnConfirm: true,
-                    //                 preConfirm: async (codigo) => {
-                    //                     try {
-                    //                         console.log(codigo)
-                    //                         $.ajax({
-                    //                             method: "PUT",
-                    //                             url: '/email_fatores',
-                    //                             data: { 'codigo': codigo },
-                    //                             dataType: "json",
-                    //                         }).done(
-                    //                             function (e) {
-                    //                                 console.log(e)
-                    //                                 if (e.success) {
-                    //                                     Swal.fire({
-                    //                                         icon: "success",
-                    //                                         title: "Tudo certo",
-                    //                                         text: "Confirmação em dois fatores ativada!",
-                    //                                     });
-                    //                                 }
-                    //                                 else {
-                    //                                     Swal.fire({
-                    //                                         icon: "error",
-                    //                                         title: "Problemas",
-                    //                                         text: "Código de ativação incorreto!",
-                    //                                     });
-                    //                                 }
-                    //                             },
-                    //                         )
-                    //                     } catch (error) {
-                    //                         Swal.fire({
-                    //                             icon: "error",
-                    //                             title: "Problemas",
-                    //                             text: "Ocorreu um problema: " + error,
-                    //                         });
-                    //                     }
-                    //                 },
-                    //                 allowOutsideClick: () => !Swal.isLoading()
-                    //             });
-                    //         }
-                    //     }
-                    // })
-                }
-            });
-
-        }
+                        else {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Problemas",
+                                text: "Ocorreu um problema!",
+                            });
+                        }
+                    }
+                })
+            }
+        });
 
     }
 
+    function email_fatores() {
+        $.ajax({
+            method: "GET",
+            url: "/email_fatores",
+            success: function (e) {
+                if (e.success) {
+                    Swal.fire({
+                        title: "Insira o codigo enviado para você: ",
+                        input: "text",
+                        inputAttributes: {
+                            autocapitalize: "off"
+                        },
+                        showCancelButton: true,
+                        confirmButtonText: "Confirmar",
+                        denyButtonText: "Cancelar",
+                        showLoaderOnConfirm: true,
+                        preConfirm: async (codigo) => {
+                            try {
+                                console.log(codigo)
+                                $.ajax({
+                                    method: "PUT",
+                                    url: '/email_fatores',
+                                    data: { 'codigo': codigo },
+                                    dataType: "json",
+                                }).done(
+                                    function (e) {
+                                        console.log(e)
+                                        if (e.success) {
+                                            Swal.fire({
+                                                icon: "success",
+                                                title: "Tudo certo",
+                                                text: "Confirmação em dois fatores ativada!",
+                                            });
+                                        }
+                                        else {
+                                            Swal.fire({
+                                                icon: "error",
+                                                title: "Problemas",
+                                                text: "Código de ativação incorreto!",
+                                            });
+                                        }
+                                    },
+                                )
+                            } catch (error) {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Problemas",
+                                    text: "Ocorreu um problema: " + error,
+                                });
+                            }
+                        },
+                        allowOutsideClick: () => !Swal.isLoading()
+                    });
+                }
+            }
+        })
+    }
+
+    function telegram_fatores() {
+        Swal.fire({
+            title: "Siga o <u>passo a passo</u>",
+            icon: "info",
+            html: `
+                <div class="text-start">
+                    1) Abra os links e clique star ou digite "/start".<br/>
+                    2) Primeiro link: <a href="https://t.me/AnimabookBot"/>Telegram Bot</a>.<br/>
+                    3) Segundo link: <a href="https://t.me/userinfobot"/>Telegram Id</a> e copie o id. <br/>
+                    4) Cole o id na no espaço após clicar em "Feito!".
+                </div>
+            `,
+            showCancelButton: true,
+            focusConfirm: false,
+            confirmButtonText: `Feito!`,
+            cancelButtonText: `Cancelar!`,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: "Insira o id do telegram: ",
+                    input: "text",
+                    inputAttributes: {
+                        autocapitalize: "off"
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: "Confirmar",
+                    denyButtonText: "Cancelar",
+                    showLoaderOnConfirm: true,
+                    preConfirm: async (codigo) => {
+                        try {
+                            console.log(codigo)
+                            $.ajax({
+                                method: "POST",
+                                url: '/telegram_fatores',
+                                data: {
+                                    'telegram': codigo,
+                                    'id': "{{usuario.id}}"
+                                },
+                                dataType: "json",
+                            }).done(
+                                function (e) {
+                                    console.log(e)
+                                    if (e.success) {
+                                        Swal.fire({
+                                            title: "Insira o codigo enviado para você pelo Telegram: ",
+                                            input: "text",
+                                            inputAttributes: {
+                                                autocapitalize: "off"
+                                            },
+                                            showCancelButton: true,
+                                            confirmButtonText: "Confirmar",
+                                            denyButtonText: "Cancelar",
+                                            showLoaderOnConfirm: true,
+                                            preConfirm: async (codigo) => {
+                                                try {
+                                                    console.log(codigo)
+                                                    $.ajax({
+                                                        method: "PUT",
+                                                        url: '/telegram_fatores',
+                                                        data: {
+                                                            'codigo': codigo,
+                                                            'id': "{{usuario.id}}"
+                                                        },
+                                                        dataType: "json",
+                                                    }).done(
+                                                        function (e) {
+                                                            console.log(e)
+                                                            if (e.success) {
+                                                                Swal.fire({
+                                                                    icon: "success",
+                                                                    title: "Tudo certo",
+                                                                    text: "Confirmação em dois fatores ativada!",
+                                                                });
+                                                            }
+                                                            else {
+                                                                Swal.fire({
+                                                                    icon: "error",
+                                                                    title: "Problemas",
+                                                                    text: "Código de ativação incorreto!",
+                                                                });
+                                                            }
+                                                        },
+                                                    )
+                                                } catch (error) {
+                                                    Swal.fire({
+                                                        icon: "error",
+                                                        title: "Problemas",
+                                                        text: "Ocorreu um problema: " + error,
+                                                    });
+                                                }
+                                            },
+                                            allowOutsideClick: () => !Swal.isLoading()
+                                        });
+                                    }
+                                    else {
+                                        Swal.fire({
+                                            icon: "error",
+                                            title: "Problemas",
+                                            text: "Id incorreto!",
+                                        });
+                                    }
+                                },
+                            )
+                        } catch (error) {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Problemas",
+                                text: "Ocorreu um problema: " + error,
+                            });
+                        }
+                    },
+                    allowOutsideClick: () => !Swal.isLoading()
+                });
+            }
+        })
+    }
+    function deactivate_fatores() {
+        $.ajax({
+            method: "PUT",
+            url: '/deactivate_fatores',
+        }).done(
+            function (e) {
+                if (e.success) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Tudo certo",
+                        text: "Confirmação em dois fatores desativada!",
+                    });
+                }
+                else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Problemas",
+                        text: "Ocorreu um erro ao desativar as validações!",
+                    });
+                }
+            }
+        )
+    }
     function atualizar_imagem(formdata) {
         $.ajax({
             method: "PUT",

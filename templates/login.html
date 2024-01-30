@@ -49,10 +49,10 @@
                         </div>
                         <p>Insira sua senha</p>
                         <div class="form-outline mb-4">
-                          <input type="password"class="form-control" name="senha"/>
+                          <input type="password" id="senha" class="form-control" name="senha"/>
                           <label class="form-label">SENHA</label>
                         </div>
-                        <div class="text-center pt-1 mb-5 pb-1">
+                        <div class="text-center pt-1 mb-5 pb-1" id="login-button">
                           <button class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3" type="submit">Log in</button>
                         </div>
                         <div class="text-center pt-1 mb-5 pb-1">
@@ -84,6 +84,14 @@
   content();
 
   function do_login(formdata) {
+    $("#login-button").html(
+      `
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      `
+    )
+
     $.ajax({
       method: "POST",
       url: '/do_login',
@@ -105,123 +113,68 @@
           });
         }
         else if (e.fatores) {
-          Swal.fire({
-            title: "De qual maneira eh sua confirmação de dois fatores?",
-            icon: "question",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "##3085d6",
-            confirmButtonText: "Email",
-            cancelButtonText: "Telegram",
-          }).then((result) => {
-            if (result.isConfirmed) {
-              $.ajax({
-                method: "GET",
-                url: "/email_fatores",
-                success: function (e) {
-                  if (e.success) {
-                    Swal.fire({
-                      title: "Insira o codigo enviado para você: ",
-                      input: "text",
-                      inputAttributes: {
-                        autocapitalize: "off"
-                      },
-                      showCancelButton: true,
-                      confirmButtonText: "Confirmar",
-                      cancelButtonText: "Cancelar",
-                      showLoaderOnConfirm: true,
-                      preConfirm: async (codigo) => {
-                        try {
-                          console.log(codigo)
-                          $.ajax({
-                            method: "PUT",
-                            url: '/login_fatores',
-                            data: { 'codigo': codigo },
-                            dataType: "json",
-                          }).done(
-                            function (e) {
-                              console.log(e)
-                              if (e.success) {
-                                window.location.href = "/";
-                              }
-                              else {
-                                Swal.fire({
-                                  icon: "error",
-                                  title: "Problemas",
-                                  text: "Código de ativação incorreto!",
-                                });
-                              }
-                            },
-                          )
-                        } catch (error) {
-                          Swal.fire({
-                            icon: "error",
-                            title: "Problemas",
-                            text: "Ocorreu um problema: " + error,
-                          });
-                        }
-                      },
-                      allowOutsideClick: () => !Swal.isLoading()
-                    });
-                  }
-                }
-              })
-            }
-            else {
-              $.ajax({
-                method: "GET",
-                url: "/login_telegram",
-                success: function (e) {
-                  if (e.success) {
-                    Swal.fire({
-                      title: "Insira o codigo enviado para você: ",
-                      input: "text",
-                      inputAttributes: {
-                        autocapitalize: "off"
-                      },
-                      showCancelButton: true,
-                      confirmButtonText: "Confirmar",
-                      cancelButtonText: "Cancelar",
-                      showLoaderOnConfirm: true,
-                      preConfirm: async (codigo) => {
-                        try {
-                          console.log(codigo)
-                          $.ajax({
-                            method: "PUT",
-                            url: '/login_fatores',
-                            data: { 'codigo': codigo },
-                            dataType: "json",
-                          }).done(
-                            function (e) {
-                              console.log(e)
-                              if (e.success) {
-                                window.location.href = "/";
-                              }
-                              else {
-                                Swal.fire({
-                                  icon: "error",
-                                  title: "Problemas",
-                                  text: "Código de ativação incorreto!",
-                                });
-                              }
-                            },
-                          )
-                        } catch (error) {
-                          Swal.fire({
-                            icon: "error",
-                            title: "Problemas",
-                            text: "Ocorreu um problema: " + error,
-                          });
-                        }
-                      },
-                      allowOutsideClick: () => !Swal.isLoading()
-                    });
-                  }
-                }
-              })
+          $.ajax({
+            method: "GET",
+            url: "/login_fatores",
+            data: {
+              'email': $("#email").val()
+            },
+            success: function (e) {
+              if (e.success) {
+                Swal.fire({
+                  title: "Insira o codigo enviado para você: ",
+                  input: "text",
+                  inputAttributes: {
+                    autocapitalize: "off"
+                  },
+                  showCancelButton: true,
+                  confirmButtonText: "Confirmar",
+                  cancelButtonText: "Cancelar",
+                  showLoaderOnConfirm: true,
+                  preConfirm: async (codigo) => {
+                    try {
+                      console.log(codigo)
+                      $.ajax({
+                        method: "PUT",
+                        url: '/login_fatores',
+                        data: {
+                          'codigo': codigo,
+                          'email': $("#email").val(),
+                          'senha': $("#senha").val()
+                        },
+                        dataType: "json",
+                      }).done(
+                        function (e) {
+                          console.log(e)
+                          if (e.success) {
+                            window.location.href = "/";
+                          }
+                          else {
+                            Swal.fire({
+                              icon: "error",
+                              title: "Problemas",
+                              text: "Código de ativação incorreto!",
+                            });
+                            spinner();
+                          }
+                        },
+                      )
+                    } catch (error) {
+                      Swal.fire({
+                        icon: "error",
+                        title: "Problemas",
+                        text: "Ocorreu um problema: " + error,
+                      });
+                      spinner();
+                    }
+                  },
+                  allowOutsideClick: () => !Swal.isLoading()
+                  
+                });
+                spinner();
+              }
             }
           })
-
         }
         else {
           Swal.fire({
@@ -229,10 +182,23 @@
             title: "Problemas ao entrar",
             text: "Email ou senha podem estar incorretos",
           });
+          spinner();
+
         }
-      },
-    )
+      })
   }
+
+  function spinner(){
+    $("#login-button").html(
+      `
+        <button class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3" type="submit">Log in</button>
+      `
+      );
+  }
+
+
+
+
 
   $(document).ready(() => {
     $("#form-login").on("submit", function (e) {
