@@ -20,7 +20,7 @@ class ClienteAdm(Base):
     adm = Column(Boolean, default=False)
     bloqueado = Column(Boolean, default=False)
     fatores_email = Column(Boolean, default=False)
-    telegram = Column(String(100))
+    telegram = Column(String(100), default="")
     data_criacao = Column(TIMESTAMP)
     data_atualizacao = Column(TIMESTAMP)
 
